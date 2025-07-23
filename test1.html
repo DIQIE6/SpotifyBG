@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>🎵SpotifyNowPlayingBG</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      text-align: center;
+      padding: 2rem;
+    }
+    img {
+      display: block;
+      margin: 0 auto 1rem auto;
+      border-radius: 10px;
+      max-width: 300px;
+    }
+    #progress {
+      width: 300px;
+      height: 10px;
+      background: #333;
+      margin: 10px auto;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    #bar {
+      height: 100%;
+      background: #1DB954;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .info {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+    }
+    .not-playing {
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵正在播放：</h1>
+  <div id="content">
+    <div id="not-playing" class="not-playing">Not playing anything currently.</div>
+    <img id="album-img" src="" alt="Album Cover" style="display: none;">
+    <div class="info" id="track-name"></div>
+    <div class="info" id="track-artist"></div>
+    <div class="info" id="track-album"></div>
+    <div id="progress"><div id="bar"></div></div>
+  </div>
+
+  <script>
+    async function fetchCurrentlyPlaying() {
+      try {
+        const res = await fetch('http://localhost:8888/currently-playing');
+        const data = await res.json();
+
+        const img = document.getElementById('album-img');
+        const name = document.getElementById('track-name');
+        const artist = document.getElementById('track-artist');
+        const album = document.getElementById('track-album');
+        const bar = document.getElementById('bar');
+        const notPlaying = document.getElementById('not-playing');
+
+        if (!data.is_playing) {
+          notPlaying.style.display = 'block';
+          img.style.display = 'none';
+          name.textContent = '';
+          artist.textContent = '';
+          album.textContent = '';
+          bar.style.width = '0%';
+          return;
+        }
+
+        notPlaying.style.display = 'none';
+
+        img.src = data.album_image;
+        img.style.display = 'block';
+
+        name.textContent = `歌曲： ${data.name}`;
+        artist.textContent = `艺术家： ${data.artists.join(', ')}`;
+        album.textContent = `专辑： ${data.album}`;
+
+        const progress = (data.progress_ms / data.duration_ms) * 100;
+        bar.style.width = `${progress}%`;
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+      }
+    }
+    fetchCurrentlyPlaying();
+
+    setInterval(fetchCurrentlyPlaying, 1000);
+  </script>
+</body>
+</html>
